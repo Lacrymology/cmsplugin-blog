@@ -34,6 +34,9 @@ class Blog(models.Model):
             manager = Entry.objects
         return manager.filter(blog=self)
 
+    def __unicode__(self):
+        return self.name
+
 class PublishedEntriesQueryset(QuerySet):
     
     def published(self):
@@ -56,6 +59,7 @@ CMSPLUGIN_BLOG_PLACEHOLDERS = getattr(settings, 'CMSPLUGIN_BLOG_PLACEHOLDERS',
                                       ('excerpt', 'content'))
 
 class Entry(models.Model):
+    blog = models.ForeignKey(Blog, verbose_name=_("Blog"))
     is_published = models.BooleanField(_('is published'))
     pub_date = models.DateTimeField(_('publish at'),
                                     default=datetime.datetime.now)

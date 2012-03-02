@@ -16,7 +16,7 @@ from simple_translation.forms import TranslationModelForm
 from simple_translation.utils import get_translation_queryset
 
 class BlogAdmin(admin.ModelAdmin):
-    prepopulated_fields = { "slug": ("title",) }
+    prepopulated_fields = { "slug": ("name",) }
 admin.site.register(Blog, BlogAdmin)
 
 class EntryForm(TranslationModelForm):
@@ -123,7 +123,8 @@ class BaseEntryAdmin(M2MPlaceholderAdmin):
     prepopulated_fields = not settings.DEBUG and {'slug': ('title',)} or {}
     
     search_fields = ('entrytitle__title', 'tags')
-    list_display = ('title', 'languages', 'author', 'is_published', 'pub_date')
+    list_display = ('title', 'languages', 'author', 'blog', 'is_published',
+                    'pub_date')
     list_editable = ('is_published',)
     list_filter = ('is_published', 'pub_date')
     date_hierarchy = 'pub_date'
@@ -143,6 +144,7 @@ class BaseEntryAdmin(M2MPlaceholderAdmin):
         fieldsets = super(BaseEntryAdmin, self).get_fieldsets(request, obj=obj)
         fieldsets[0] = (None, {'fields': (
             'language',
+            'blog',
             'is_published',
             'pub_date',
             'author',
