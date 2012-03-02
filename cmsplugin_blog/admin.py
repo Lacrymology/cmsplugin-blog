@@ -32,17 +32,24 @@ class M2MPlaceholderAdmin(PlaceholderTranslationAdmin):
         
         if obj:        
             
-            for placeholder_name in obj._meta.get_field('placeholders').placeholders:
+            for placeholder_name in (obj._meta.get_field('placeholders')
+                                     .placeholders):
                 
-                placeholder, created = obj.placeholders.get_or_create(slot=placeholder_name)
+                placeholder, created = obj.placeholders.get_or_create(
+                    slot=placeholder_name)
                 
-                defaults = {'label': capfirst(placeholder_name), 'help_text': ''}
+                defaults = {
+                    'label': capfirst(placeholder_name),
+                    'help_text': ''
+                    }
                 defaults.update(kwargs)
                 
-                widget = PlaceholderPluginEditorWidget(request, self.placeholder_plugin_filter)
+                widget = PlaceholderPluginEditorWidget(
+                    request, self.placeholder_plugin_filter)
                 widget.choices = []
                 
-                form.base_fields[placeholder.slot] = CharField(widget=widget, required=False)   
+                form.base_fields[placeholder.slot] = CharField(
+                    widget=widget, required=False)   
                 form.base_fields[placeholder.slot].initial = placeholder.pk
                 
         return form
@@ -52,11 +59,17 @@ class M2MPlaceholderAdmin(PlaceholderTranslationAdmin):
         Add fieldsets of placeholders to the list of already existing
         fieldsets.
         """
-        given_fieldsets = super(M2MPlaceholderAdmin, self).get_fieldsets(request, obj=None)
+        given_fieldsets = (super(M2MPlaceholderAdmin, self)
+                           .get_fieldsets(request, obj=None))
 
         if obj: # edit
-            for placeholder_name in obj._meta.get_field('placeholders').placeholders:
-                given_fieldsets += [(title(placeholder_name), {'fields':[placeholder_name], 'classes':['plugin-holder']})]
+            for placeholder_name in (obj._meta.get_field('placeholders')
+                                     .placeholders):
+                given_fieldsets += [(title(placeholder_name),
+                                     {
+                            'fields':[placeholder_name],
+                            'classes':['plugin-holder']
+                            })]
 
         return given_fieldsets
             
@@ -68,14 +81,19 @@ class M2MPlaceholderAdmin(PlaceholderTranslationAdmin):
             
         if request.method == "POST":    
             if 'plugin_id' in request.POST:
-                plugin = CMSPlugin.objects.get(pk=int(request.POST['plugin_id']))
+                plugin = CMSPlugin.objects.get(
+                    pk=int(request.POST['plugin_id']))
                 if "placeholder" in request.POST:
-                    obj = plugin.placeholder._get_attached_model().objects.get(placeholders__cmsplugin=plugin)
-                    placeholder = obj.placeholders.get(slot=request.POST["placeholder"])
+                    obj = plugin.placeholder._get_attached_model().objects.get(
+                        placeholders__cmsplugin=plugin)
+                    placeholder = obj.placeholders.get(
+                        slot=request.POST["placeholder"])
                 else:
                     placeholder = plugin.placeholder
-                # plugin positions are 0 based, so just using count here should give us 'last_position + 1'
-                position = CMSPlugin.objects.filter(placeholder=placeholder).count()
+                # plugin positions are 0 based, so just using count here should
+                #give us 'last_position + 1'
+                position = (CMSPlugin.objects.filter(placeholder=placeholder)
+                            .count())
                 plugin.placeholder = placeholder
                 plugin.position = position
                 plugin.save()
@@ -130,10 +148,13 @@ class BaseEntryAdmin(M2MPlaceholderAdmin):
         )})
         return fieldsets
         
-    def save_translated_model(self, request, obj, translation_obj, form, change):
+    def save_translated_model(self, request, obj,
+                              translation_obj, form, change):
         if not translation_obj.author:
             translation_obj.author=request.user
-        super(BaseEntryAdmin, self).save_translated_model(request, obj, translation_obj, form, change)
+        super(BaseEntryAdmin, self).save_translated_model(request, obj,
+                                                          translation_obj,
+                                                          form, change)
 
 if 'guardian' in settings.INSTALLED_APPS: # pragma: no cover
     from guardian.admin import GuardedModelAdmin
