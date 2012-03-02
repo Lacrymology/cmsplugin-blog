@@ -17,6 +17,23 @@ from tagging.fields import TagField
 from simple_translation.actions import SimpleTranslationPlaceholderActions
 from djangocms_utils.fields import M2MPlaceholderField
 
+class Blog(models.Model):
+    """
+    A blog. Entries belong here.
+    """
+    name = models.CharField(verbose_name=_("Name"), max_length=32)
+    slug = models.SlugField()
+    
+    def get_entries(self, published=True):
+        """
+        Get this blog's entries. Returns only published entires by default
+        """
+        if published:
+            manager = Entry.published
+        else:
+            manager = Entry.objects
+        return manager.filter(blog=self)
+
 class PublishedEntriesQueryset(QuerySet):
     
     def published(self):
@@ -34,10 +51,10 @@ class PublishedEntriesManager(EntriesManager):
     """
     def get_query_set(self):
         return super(PublishedEntriesManager, self).get_query_set().published()
-                    
+    
 CMSPLUGIN_BLOG_PLACEHOLDERS = getattr(settings, 'CMSPLUGIN_BLOG_PLACEHOLDERS',
                                       ('excerpt', 'content'))
-              
+
 class Entry(models.Model):
     is_published = models.BooleanField(_('is published'))
     pub_date = models.DateTimeField(_('publish at'),
@@ -88,7 +105,7 @@ class Entry(models.Model):
         model = get_translated_model(self.__class__)
         return model.DETAIL_TEMPLATE
     template = property(_template)
-         
+    
     class Meta:
         verbose_name = _('entry')
         verbose_name_plural = _('entries')
@@ -136,11 +153,12 @@ class EntryTitle(AbstractEntryTitle):
         
 class LatestEntriesPlugin(CMSPlugin):
     """
-        Model for the settings when using the latest entries cms plugin
+    Model for the settings when using the latest entries cms plugin
     """
-    limit = models.PositiveIntegerField(_('Number of entries items to show'), 
-                    help_text=_('Limits the number of items that will be '
-                                'displayed'))
+    limit = models.PositiveIntegerField(_('Number of entries items to show'),
+                                        help_text=_('Limits the number of '
+                                                    'items that will be '
+                                                    'displayed'))
                     
     current_language_only = models.BooleanField(_('Only show entries for the '
                                                   'current language'))

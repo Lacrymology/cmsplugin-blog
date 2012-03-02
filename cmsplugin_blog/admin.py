@@ -1,7 +1,7 @@
 from cms.forms.widgets import PlaceholderPluginEditorWidget
 from cms.models.pluginmodel import CMSPlugin
 from cms.utils import get_language_from_request
-from cmsplugin_blog.models import Entry, EntryTitle
+from cmsplugin_blog.models import Blog, Entry, EntryTitle
 from cmsplugin_blog.widgets import AutoCompleteTagInput
 from django import forms
 from django.contrib import admin
@@ -14,6 +14,10 @@ from django.utils.translation import ugettext_lazy as _
 from simple_translation.admin import PlaceholderTranslationAdmin
 from simple_translation.forms import TranslationModelForm
 from simple_translation.utils import get_translation_queryset
+
+class BlogAdmin(admin.ModelAdmin):
+    prepopulated_fields = { "slug": ("title",) }
+admin.site.register(Blog, BlogAdmin)
 
 class EntryForm(TranslationModelForm):
         
