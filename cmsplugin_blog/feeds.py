@@ -26,14 +26,21 @@ class EntriesFeed(Feed):
         self.language_namespace = ''
         if is_multilingual():
             self.language_namespace = '%s:' % self.language_code
+        self.blog_slug = kwargs.get('blog_slug', None)
         return None
     
     def feed_url(self, obj):
         if self.any_language:
             return add_current_root(reverse('%sblog_rss_any' %
-                                            self.language_namespace))
+                                            self.language_namespace,
+                                            kwargs={
+                        'blog_slug': self.blog_slug,
+                        }))
         return add_current_root(reverse('%sblog_rss' %
-                                        self.language_namespace))
+                                        self.language_namespace,
+                                        kwargs={
+                    'blog_slug': self.blog_slug,
+                    }))
         
     def title(self, obj):
         if self.any_language or not is_multilingual():
@@ -44,7 +51,10 @@ class EntriesFeed(Feed):
 
     def link(self, obj):
         return add_current_root(reverse('%sblog_archive_index' %
-                                        self.language_namespace))
+                                        self.language_namespace,
+                                        kwargs={
+                    'blog_slug': self.blog_slug,
+                    }))
 
     def item_link(self, obj):
         return add_current_root(obj.get_absolute_url())
@@ -93,16 +103,19 @@ class TaggedEntriesFeed(EntriesFeed):
         if self.any_language:
             return add_current_root(reverse('%sblog_rss_any_tagged' %
                                             self.language_namespace, kwargs={
-                        'tag': self.tag
+                        'tag': self.tag,
+                        'blog_slug': self.blog_slug,
                         }))
         return add_current_root(reverse('%sblog_rss_tagged' %
                                         self.language_namespace, kwargs={
+                    'blog_slug': self.blog_slug,
                     'tag': self.tag
                     }))
         
     def link(self, obj):
         return add_current_root(reverse('%sblog_archive_tagged' %
                                         self.language_namespace, kwargs={
+                    'blog_slug': self.blog_slug,
                     'tag': self.tag
                     }))
 
@@ -137,16 +150,19 @@ class AuthorEntriesFeed(EntriesFeed):
         if self.any_language:
             return add_current_root(reverse('%sblog_rss_any_author' %
                                             self.language_namespace, kwargs={
+                        'blog_slug': self.blog_slug,
                         'author': self.author
                         }))
         return add_current_root(reverse('%sblog_rss_author' %
                                         self.language_namespace, kwargs={
-                    'author': self.author
+                    'blog_slug': self.blog_slug,
+                    'author': self.author,
                     }))
     
     def link(self, obj):
         return add_current_root(reverse('%sblog_archive_author' %
                                         self.language_namespace, kwargs={
+                    'blog_slug': self.blog_slug,
                     'author': self.author
                     }))
     
