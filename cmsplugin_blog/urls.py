@@ -4,6 +4,7 @@ from django.core.urlresolvers import reverse
 from django.views.generic.date_based import (archive_year, archive_month,
                                              archive_day, object_detail)
 from django.views.generic.list_detail import object_list
+from django.shortcuts import get_object_or_404
 
 from tagging.views import tagged_object_list
 
@@ -59,33 +60,47 @@ def language_changer(lang):
 blog_archive_index = EntryArchiveIndexView.as_view()
 
 def blog_archive_year(request, **kwargs):
-    kwargs['queryset'] = kwargs['queryset'].published()
+    blog_slug = kwargs.pop('blog_slug')
+    kwargs['queryset'] = kwargs['queryset'].published().filter(
+        blog__slug=blog_slug)
     set_language_changer(request, language_changer)
-    return archive_year(request, **kwargs)
+    return archive_year(request, extra_context={ 'blog_slug': blog_slug },
+                        **kwargs)
     
 def blog_archive_month(request, **kwargs):
-    kwargs['queryset'] = kwargs['queryset'].published()
+    blog_slug = kwargs.pop('blog_slug')
+    kwargs['queryset'] = kwargs['queryset'].published().filter(
+        blog__slug=blog_slug)
     set_language_changer(request, language_changer)
-    return archive_month(request, **kwargs)
+    return archive_month(request, extra_context={ 'blog_slug': blog_slug },
+                         **kwargs)
 
 def blog_archive_day(request, **kwargs):
-    kwargs['queryset'] = kwargs['queryset'].published()
+    blog_slug = kwargs.pop('blog_slug')
+    kwargs['queryset'] = kwargs['queryset'].published().filter(
+        blog__slug=blog_slug)
     set_language_changer(request, language_changer)
-    return archive_day(request, **kwargs)
+    return archive_day(request, extra_context={ 'blog_slug': blog_slug },
+                       **kwargs)
 
 blog_detail = EntryDateDetailView.as_view()
 
 def blog_archive_tagged(request, **kwargs):
-    kwargs['queryset_or_model'] = kwargs['queryset_or_model'].published()
+    blog_slug = kwargs.pop('blog_slug')
+    kwargs['queryset_or_model'] = (kwargs['queryset_or_model'].published()
+                                   .filter(blog__slug=blog_slug))
     set_language_changer(request, language_changer)
-    return tagged_object_list(request, **kwargs)
+    return tagged_object_list(request, extra_context={ 'blog_slug': blog_slug },
+                              **kwargs)
 
 def blog_archive_author(request, **kwargs):
+    blog_slug = kwargs.pop('blog_slug')
     author = kwargs.pop('author')
     kwargs['queryset'] = kwargs['queryset'].published().filter(
-        entrytitle__author__username=author)
+        blog__slug=blog_slug, entrytitle__author__username=author)
     kwargs['extra_context'] = {
         'author': author,
+        'blog_slug': blog_slug,
     }
     set_language_changer(request, language_changer)
     return object_list(request, **kwargs)
