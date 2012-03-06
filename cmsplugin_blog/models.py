@@ -160,6 +160,7 @@ class LatestEntriesPlugin(CMSPlugin):
     """
     Model for the settings when using the latest entries cms plugin
     """
+    blog = models.ForeignKey(Blog, verbose_name=_("Blog"),)
     limit = models.PositiveIntegerField(_('Number of entries items to show'),
                                         help_text=_('Limits the number of '
                                                     'items that will be '
