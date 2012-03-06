@@ -141,7 +141,8 @@ class AbstractEntryTitle(models.Model):
             'year': self.entry.pub_date.strftime('%Y'),
             'month': self.entry.pub_date.strftime('%m'),
             'day': self.entry.pub_date.strftime('%d'),
-            'slug': self.slug
+            'slug': self.slug,
+            'blog_slug': self.entry.blog.slug,
         })
     get_absolute_url = models.permalink(_get_absolute_url)
 
