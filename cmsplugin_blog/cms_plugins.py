@@ -10,7 +10,7 @@ from cmsplugin_blog.models import LatestEntriesPlugin, Entry
 
 class CMSLatestEntriesPlugin(CMSPluginBase):
     """
-        Plugin class for the latest entries
+    Plugin class for the latest entries
     """
     model = LatestEntriesPlugin
     name = _('Latest entries')
@@ -18,9 +18,9 @@ class CMSLatestEntriesPlugin(CMSPluginBase):
     
     def render(self, context, instance, placeholder):
         """
-            Render the latest entries
+        Render the latest entries
         """
-        qs = Entry.published.all()
+        qs = Entry.published.filter(blog=instance.blog)
         
         if instance.current_language_only:
             language = get_language_from_request(context["request"])
