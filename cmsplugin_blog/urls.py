@@ -1,8 +1,10 @@
 from django.conf import settings
 from django.conf.urls.defaults import *
 from django.core.urlresolvers import reverse
-from django.views.generic.date_based import archive_year, archive_month, archive_day, object_detail
+from django.views.generic.date_based import (archive_year, archive_month,
+                                             archive_day, object_detail)
 from django.views.generic.list_detail import object_list
+from django.shortcuts import get_object_or_404
 
 from tagging.views import tagged_object_list
 
@@ -11,7 +13,8 @@ from menus.utils import set_language_changer
 from cms.models import Title
 from cms.utils.urlutils import urljoin
 
-from cmsplugin_blog.feeds import EntriesFeed, TaggedEntriesFeed, AuthorEntriesFeed
+from cmsplugin_blog.feeds import (EntriesFeed, TaggedEntriesFeed,
+                                  AuthorEntriesFeed)
 from cmsplugin_blog.models import Entry
 from cmsplugin_blog.views import EntryDateDetailView, EntryArchiveIndexView
 
@@ -47,7 +50,8 @@ blog_info_year_dict = {
     'allow_empty': True,
 }
 
-blog_info_detail_dict = dict(blog_info_month_dict, slug_field='entrytitle__slug')
+blog_info_detail_dict = dict(blog_info_month_dict,
+                             slug_field='entrytitle__slug')
 
 def language_changer(lang):
     request = language_changer.request
@@ -56,32 +60,47 @@ def language_changer(lang):
 blog_archive_index = EntryArchiveIndexView.as_view()
 
 def blog_archive_year(request, **kwargs):
-    kwargs['queryset'] = kwargs['queryset'].published()
+    blog_slug = kwargs.pop('blog_slug')
+    kwargs['queryset'] = kwargs['queryset'].published().filter(
+        blog__slug=blog_slug)
     set_language_changer(request, language_changer)
-    return archive_year(request, **kwargs)
+    return archive_year(request, extra_context={ 'blog_slug': blog_slug },
+                        **kwargs)
     
 def blog_archive_month(request, **kwargs):
-    kwargs['queryset'] = kwargs['queryset'].published()
+    blog_slug = kwargs.pop('blog_slug')
+    kwargs['queryset'] = kwargs['queryset'].published().filter(
+        blog__slug=blog_slug)
     set_language_changer(request, language_changer)
-    return archive_month(request, **kwargs)
+    return archive_month(request, extra_context={ 'blog_slug': blog_slug },
+                         **kwargs)
 
 def blog_archive_day(request, **kwargs):
-    kwargs['queryset'] = kwargs['queryset'].published()
+    blog_slug = kwargs.pop('blog_slug')
+    kwargs['queryset'] = kwargs['queryset'].published().filter(
+        blog__slug=blog_slug)
     set_language_changer(request, language_changer)
-    return archive_day(request, **kwargs)
+    return archive_day(request, extra_context={ 'blog_slug': blog_slug },
+                       **kwargs)
 
 blog_detail = EntryDateDetailView.as_view()
 
 def blog_archive_tagged(request, **kwargs):
-    kwargs['queryset_or_model'] = kwargs['queryset_or_model'].published()
+    blog_slug = kwargs.pop('blog_slug')
+    kwargs['queryset_or_model'] = (kwargs['queryset_or_model'].published()
+                                   .filter(blog__slug=blog_slug))
     set_language_changer(request, language_changer)
-    return tagged_object_list(request, **kwargs)
+    return tagged_object_list(request, extra_context={ 'blog_slug': blog_slug },
+                              **kwargs)
 
 def blog_archive_author(request, **kwargs):
+    blog_slug = kwargs.pop('blog_slug')
     author = kwargs.pop('author')
-    kwargs['queryset'] = kwargs['queryset'].published().filter(entrytitle__author__username=author)
+    kwargs['queryset'] = kwargs['queryset'].published().filter(
+        blog__slug=blog_slug, entrytitle__author__username=author)
     kwargs['extra_context'] = {
         'author': author,
+        'blog_slug': blog_slug,
     }
     set_language_changer(request, language_changer)
     return object_list(request, **kwargs)
@@ -101,20 +120,25 @@ urlpatterns = patterns('',
     (r'^(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<slug>[-\w]+)/$', 
         blog_detail, blog_info_detail_dict, 'blog_detail'),
         
-    (r'^tagged/(?P<tag>[^/]*)/$', blog_archive_tagged, blog_info_tagged_dict, 'blog_archive_tagged'),
+    (r'^tagged/(?P<tag>[^/]*)/$', blog_archive_tagged, blog_info_tagged_dict,
+     'blog_archive_tagged'),
 
-    (r'^author/(?P<author>[^/]*)/$', blog_archive_author, blog_info_author_dict, 'blog_archive_author'),
+    (r'^author/(?P<author>[^/]*)/$', blog_archive_author, blog_info_author_dict,
+     'blog_archive_author'),
     
-    (r'^rss/any/tagged/(?P<tag>[^/]*)/$', TaggedEntriesFeed(), {'any_language': True}, 'blog_rss_any_tagged'),
+    (r'^rss/any/tagged/(?P<tag>[^/]*)/$', TaggedEntriesFeed(),
+     {'any_language': True}, 'blog_rss_any_tagged'),
     
-    (r'^rss/tagged/(?P<tag>[^/]*)/$', TaggedEntriesFeed(), {}, 'blog_rss_tagged'),
+    (r'^rss/tagged/(?P<tag>[^/]*)/$', TaggedEntriesFeed(), {},
+     'blog_rss_tagged'),
     
-    (r'^rss/any/author/(?P<author>[^/]*)/$', AuthorEntriesFeed(), {'any_language': True}, 'blog_rss_any_author'),
+    (r'^rss/any/author/(?P<author>[^/]*)/$', AuthorEntriesFeed(),
+     {'any_language': True}, 'blog_rss_any_author'),
     
-    (r'^rss/author/(?P<author>[^/]*)/$', AuthorEntriesFeed(), {}, 'blog_rss_author'),
+    (r'^rss/author/(?P<author>[^/]*)/$', AuthorEntriesFeed(), {},
+     'blog_rss_author'),
     
     (r'^rss/any/$', EntriesFeed(), {'any_language': True}, 'blog_rss_any'),
     
     (r'^rss/$', EntriesFeed(), {}, 'blog_rss')
-    
 )

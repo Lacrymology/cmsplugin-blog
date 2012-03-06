@@ -20,6 +20,7 @@ def render_month_links(context):
     kw = get_translation_filter_language(Entry, language)
     return {
         'dates': Entry.published.filter(**kw).dates('pub_date', 'month'),
+        'blog_slug': context['blog_slug'],
     }
 
 @register.inclusion_tag('cmsplugin_blog/tag_links_snippet.html', takes_context=True)
@@ -29,7 +30,8 @@ def render_tag_links(context):
     kw = get_translation_filter_language(Entry, language)
     filters = dict(is_published=True, pub_date__lte=datetime.datetime.now(), **kw)
     return {
-        'tags': Tag.objects.usage_for_model(Entry, filters=filters)
+        'tags': Tag.objects.usage_for_model(Entry, filters=filters),
+        'blog_slug': context['blog_slug'],
     }
 
 @register.inclusion_tag('cmsplugin_blog/author_links_snippet.html', takes_context=True)
@@ -44,7 +46,8 @@ def render_author_links(context, order_by='username'):
             pk__in=model.objects.filter(
                 entry__in=Entry.published.filter(**kw)
             ).values('author')
-        ).order_by(order_by).values_list('username', flat=True)
+        ).order_by(order_by).values_list('username', flat=True),
+        'blog_slug': context['blog_slug'],
     }
 
 @register.filter

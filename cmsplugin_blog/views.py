@@ -1,10 +1,14 @@
 import datetime
 try: # pragma: no cover
-    from django.views.generic.dates import BaseDateDetailView, ArchiveIndexView, _date_lookup_for_field, _date_from_string
+    from django.views.generic.dates import (BaseDateDetailView,
+                                            ArchiveIndexView,
+                                            _date_lookup_for_field,
+                                            _date_from_string)
     from django.views.generic.detail import SingleObjectTemplateResponseMixin
 except ImportError: # pragma: no cover
     from cbv.views.detail import SingleObjectTemplateResponseMixin
-    from cbv.views.dates import BaseDateDetailView, ArchiveIndexView, _date_lookup_for_field, _date_from_string
+    from cbv.views.dates import (BaseDateDetailView, ArchiveIndexView,
+                                 _date_lookup_for_field, _date_from_string)
 
 from django.http import Http404
 from django.shortcuts import redirect
@@ -13,7 +17,8 @@ from cms.middleware.multilingual import has_lang_prefix
 from menus.utils import set_language_changer
 
 from simple_translation.middleware import filter_queryset_language
-from simple_translation.utils import get_translation_filter, get_translation_filter_language
+from simple_translation.utils import (get_translation_filter,
+                                      get_translation_filter_language)
 from cmsplugin_blog.models import Entry
 from cmsplugin_blog.utils import is_multilingual
 
@@ -38,11 +43,15 @@ class DateDetailView(SingleObjectTemplateResponseMixin, BaseDateDetailView):
         if queryset is None:
             queryset = self.get_queryset()
 
-        if not self.get_allow_future() and date > datetime.date.today(): # pragma: no cover
-            raise Http404(_(u"Future %(verbose_name_plural)s not available because %(class_name)s.allow_future is False.") % {
-                'verbose_name_plural': queryset.model._meta.verbose_name_plural,
-                'class_name': self.__class__.__name__,
-            })
+        if (not self.get_allow_future() and
+            date > datetime.date.today()): # pragma: no cover
+            raise Http404(_(u"Future %(verbose_name_plural)s not available "
+                            u"because %(class_name)s.allow_future is False.") %
+                          {
+                    'verbose_name_plural': (queryset.model._meta
+                                            .verbose_name_plural),
+                    'class_name': self.__class__.__name__,
+                    })
 
         # Filter down a queryset from self.queryset using the date from the
         # URL. This'll get passed as the queryset to DetailView.get_object,
@@ -61,20 +70,29 @@ class EntryDateDetailView(DateDetailView):
     month_format = '%m'
     queryset = Entry.objects.all()
     
+    def get_context_data(self, **kwargs):
+        context = super(EntryDateDetailView, self).get_context_data(**kwargs)
+        context['blog_slug'] = self.kwargs['blog_slug']
+        return context
+
     def get_object(self):
         try:
             obj = super(EntryDateDetailView, self).get_object()
         except Http404, e:
-            # No entry has been found for a given language, we fallback to search for an entry in any language
-            # Could find multiple entries, in this way we cannot decide which one is the right one, so we let
+            # No entry has been found for a given language, we fallback to
+            # search for an entry in any language
+            # Could find multiple entries, in this way we cannot decide which
+            # one is the right one, so we let
             # exception be propagated FIXME later
             if is_multilingual():
                 try:
                     queryset = self.get_unfiltered_queryset()
-                    obj = super(EntryDateDetailView, self).get_object(queryset=queryset)
+                    obj = super(EntryDateDetailView, self).get_object(
+                        queryset=queryset)
                 except Entry.MultipleObjectsReturned, s:
                     raise e
-                # We know there is only one title for this entry, so we can simply use get()
+                # We know there is only one title for this entry, so we can
+                # simply use get()
                 raise Redirect(obj.entrytitle_set.get().get_absolute_url())
             else:
                 raise e
@@ -83,10 +101,12 @@ class EntryDateDetailView(DateDetailView):
         return obj
         
     def get_unfiltered_queryset(self):
-        return super(EntryDateDetailView, self).get_queryset().published()
+        return super(EntryDateDetailView, self).get_queryset().filter(
+            blog__slug=self.kwargs['blog_slug']).published()
             
     def get_queryset(self):
-        queryset = super(EntryDateDetailView, self).get_queryset()
+        queryset = super(EntryDateDetailView, self).get_queryset().filter(
+            blog__slug=self.kwargs['blog_slug'])
         queryset = filter_queryset_language(self.request, queryset)
         if self.request.user.is_staff or self.request.user.is_superuser:
             return queryset
@@ -95,7 +115,8 @@ class EntryDateDetailView(DateDetailView):
     
     def dispatch(self, request, *args, **kwargs):
         try:
-            return super(EntryDateDetailView, self).dispatch(request, *args, **kwargs)
+            return super(EntryDateDetailView, self).dispatch(request, *args,
+                                                             **kwargs)
         except Redirect, e:
             return redirect(*e.args, **e.kwargs)
 
@@ -106,6 +127,11 @@ class EntryArchiveIndexView(ArchiveIndexView):
     template_name_field = 'template'
     queryset = Entry.objects.all()
 
+    def get_context_data(self, **kwargs):
+        context = super(EntryArchiveIndexView, self).get_context_data(**kwargs)
+        context['blog_slug'] = self.kwargs['blog_slug']
+        return context
+
     def get_dated_items(self):
         items = super(EntryArchiveIndexView, self).get_dated_items()
         from cmsplugin_blog.urls import language_changer
@@ -113,6 +139,7 @@ class EntryArchiveIndexView(ArchiveIndexView):
         return items
 
     def get_dated_queryset(self, **lookup):
-        queryset = super(EntryArchiveIndexView, self).get_dated_queryset(**lookup)
+        queryset = super(EntryArchiveIndexView, self).get_dated_queryset(
+            **lookup)
         queryset = filter_queryset_language(self.request, queryset)
-        return queryset.published()
+        return queryset.published().filter(blog__slug=self.kwargs['blog_slug'])
