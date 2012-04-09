@@ -83,7 +83,7 @@ def blog_archive_tagged(request, **kwargs):
 def blog_archive_author(request, **kwargs):
     author = kwargs.pop('author')
     kwargs['queryset'] = kwargs['queryset'].published().filter(
-        entrytitle__author__username=author)
+        entrytitle__author__username=author).distinct()
     kwargs['extra_context'] = {
         'author': author,
         }
