@@ -97,7 +97,7 @@ def blog_archive_author(request, **kwargs):
     blog_slug = kwargs.pop('blog_slug')
     author = kwargs.pop('author')
     kwargs['queryset'] = kwargs['queryset'].published().filter(
-        blog__slug=blog_slug, entrytitle__author__username=author)
+        blog__slug=blog_slug, entrytitle__author__username=author).distinct()
     kwargs['extra_context'] = {
         'author': author,
         'blog_slug': blog_slug,
