@@ -34,6 +34,14 @@ class Blog(models.Model):
             manager = Entry.objects
         return manager.filter(blog=self)
 
+    def get_absolute_url(self, language=None):
+        language_namespace = (('cmsplugin_blog.middleware.'
+                               'MultilingualBlogEntriesMiddleware') in
+                              settings.MIDDLEWARE_CLASSES and
+                              '%s:' % language or '')
+        return ("%sblog_archive_index" % language_namespace, (),
+                    {'blog_slug': self.slug})
+
     def __unicode__(self):
         return self.name
 
