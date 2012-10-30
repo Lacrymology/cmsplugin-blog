@@ -1,4 +1,7 @@
 import datetime
+from cms.utils.i18n import get_fallback_languages
+from django.utils.translation import get_language
+
 try: # pragma: no cover
     from django.views.generic.dates import BaseDateDetailView, ArchiveIndexView, _date_lookup_for_field, _date_from_string
     from django.views.generic.detail import SingleObjectTemplateResponseMixin
@@ -15,7 +18,7 @@ from menus.utils import set_language_changer
 
 from simple_translation.middleware import filter_queryset_language
 from simple_translation.utils import get_translation_filter, get_translation_filter_language
-from cmsplugin_blog.models import Entry
+from cmsplugin_blog.models import Entry, EntryTitle
 from cmsplugin_blog.utils import is_multilingual
 
 class Redirect(Exception):
@@ -75,8 +78,17 @@ class EntryDateDetailView(DateDetailView):
                     obj = super(EntryDateDetailView, self).get_object(queryset=queryset)
                 except Entry.MultipleObjectsReturned, s:
                     raise e
-                # We know there is only one title for this entry, so we can simply use get()
-                raise Redirect(obj.entrytitle_set.get().get_absolute_url())
+                # Use django-cms' CMS_LANGUAGE_CONF setting to decide the
+                #  preferred language fallback order
+                fallbacks = get_fallback_languages(get_language())
+                for lang in fallbacks:
+                    # try the fallback languages
+                    try:
+                        raise Redirect(obj.entrytitle_set.get(language=lang))
+                    except EntryTitle.DoesNotExist:
+                        pass
+                    #if it all fails, raise the 404
+                    raise e
             else:
                 raise e
 
