@@ -8,6 +8,7 @@ except ImportError: # pragma: no cover
 
 from django.http import Http404
 from django.shortcuts import redirect
+from django.utils.translation import ugettext as _
 
 from cms.middleware.multilingual import has_lang_prefix
 from menus.utils import set_language_changer
