@@ -155,22 +155,18 @@ class EntryTitle(AbstractEntryTitle):
     class Meta:
         verbose_name = _('blogentry')
         verbose_name_plural = _('blogentries')
+        unique_together = ('language', 'slug')
         
 class LatestEntriesPlugin(CMSPlugin):
     """
     Model for the settings when using the latest entries cms plugin
     """
-<<<<<<< HEAD
     blog = models.ForeignKey(Blog, verbose_name=_("Blog"),)
     limit = models.PositiveIntegerField(_('Number of entries items to show'),
                                         help_text=_('Limits the number of '
                                                     'items that will be '
                                                     'displayed'))
-=======
-    limit = models.PositiveIntegerField(_('Number of entries items to show'), 
-                    help_text=_('Limits the number of items that will be '
-                                'displayed'))
->>>>>>> release/1.1.1
                     
     current_language_only = models.BooleanField(_('Only show entries for the '
                                                   'current language'))
+    tagged = models.CharField(max_length=255, blank=True)
