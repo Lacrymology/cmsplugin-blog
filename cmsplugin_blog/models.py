@@ -163,6 +163,7 @@ class EntryTitle(AbstractEntryTitle):
     class Meta:
         verbose_name = _('blogentry')
         verbose_name_plural = _('blogentries')
+        unique_together = ('language', 'slug')
         
 class LatestEntriesPlugin(CMSPlugin):
     """
@@ -176,3 +177,4 @@ class LatestEntriesPlugin(CMSPlugin):
                     
     current_language_only = models.BooleanField(_('Only show entries for the '
                                                   'current language'))
+    tagged = models.CharField(max_length=255, blank=True)
